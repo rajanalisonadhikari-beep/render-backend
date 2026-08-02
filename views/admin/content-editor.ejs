@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit <%= pageSlug %> — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <%- include('partials/sidebar', { active: 'content' }) %>
+
+    <div class="admin-main" style="display:flex; flex-direction:column;">
+      <div class="admin-topbar">
+        <h1>Editing: <%= pageSlug %>.html</h1>
+        <a class="btn btn-ghost btn-sm" href="/admin/content">← All pages</a>
+      </div>
+
+      <div class="editor-shell">
+        <div class="editor-pane">
+          <p style="color:var(--text-muted); font-size:12.5px; margin-top:0;">
+            Edit a block, hit <b>Save Draft</b> to update the live preview,
+            then <b>Publish</b> to push it live on the real site.
+          </p>
+
+          <% if (blocks.length === 0) { %>
+            <div class="empty-state">No editable blocks on this page yet. Add one below to get started.</div>
+          <% } %>
+
+          <% blocks.forEach(function(b) { %>
+            <div class="block-card" data-id="<%= b._id %>" data-type="<%= b.type %>">
+              <div class="block-head">
+                <span class="label"><%= b.label %></span>
+                <span class="pill <%= b.value ? 'pill-published' : 'pill-draft' %>">
+                  <%= b.value ? 'Published' : 'Not published' %>
+                </span>
+              </div>
+
+              <% if (b.type === 'image') { %>
+                <div class="image-block">
+                  <img src="<%= b.draftValue || b.value || '' %>" onerror="this.style.display='none'" />
+                  <input type="file" accept="image/*" class="imageInput" />
+                </div>
+              <% } else { %>
+                <div class="quillEditor"><%- b.draftValue || b.value || '' %></div>
+              <% } %>
+
+              <div class="block-actions">
+                <button class="btn-primary" onclick="saveDraft(this)">Save Draft</button>
+                <button class="btn-success" onclick="publish(this)">Publish</button>
+                <form method="POST" action="/admin/content/block/<%= b._id %>/delete" style="display:inline">
+                  <button type="submit" class="btn-danger" onclick="return confirm('Delete this block?')">Delete</button>
+                </form>
+                <span class="status-text"></span>
+              </div>
+            </div>
+          <% }); %>
+
+          <div class="add-block-card">
+            <h3>Add a new editable block</h3>
+            <form method="POST" action="/admin/content/<%= pageSlug %>/block">
+              <label>Label</label>
+              <input name="label" placeholder="e.g. 'Second paragraph'" required />
+              <label>Key</label>
+              <input name="blockKey" placeholder="e.g. 'body-paragraph-2' — must be unique on this page" required />
+              <label>Type</label>
+              <select name="type">
+                <option value="richtext">Rich text (paragraph)</option>
+                <option value="text">Plain text (heading/label)</option>
+                <option value="image">Image</option>
+              </select>
+              <button class="btn-primary" type="submit">Add Block</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="preview-pane">
+          <div class="frame-wrap">
+            <iframe id="previewFrame" src="/admin/content/<%= pageSlug %>/preview-frame"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+  <script>
+    const quills = {};
+    document.querySelectorAll('.quillEditor').forEach(el => {
+      const blockDiv = el.closest('.block-card');
+      quills[blockDiv.dataset.id] = new Quill(el, { theme: 'snow' });
+    });
+
+    function refreshPreview() {
+      document.getElementById('previewFrame').contentWindow.location.reload();
+    }
+
+    async function saveDraft(btn) {
+      const blockDiv = btn.closest('.block-card');
+      const id = blockDiv.dataset.id;
+      const type = blockDiv.dataset.type;
+      const statusEl = blockDiv.querySelector('.status-text');
+
+      if (type === 'image') {
+        const fileInput = blockDiv.querySelector('.imageInput');
+        if (!fileInput.files.length) { statusEl.textContent = 'Choose a file first'; return; }
+        const fd = new FormData();
+        fd.append('image', fileInput.files[0]);
+        const res = await fetch('/admin/content/block/' + id + '/image', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok) { statusEl.textContent = 'Draft saved ✓'; refreshPreview(); }
+      } else {
+        const html = quills[id].root.innerHTML;
+        const res = await fetch('/admin/content/block/' + id + '/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: html }),
+        });
+        const data = await res.json();
+        if (data.ok) { statusEl.textContent = 'Draft saved ✓'; refreshPreview(); }
+      }
+    }
+
+    async function publish(btn) {
+      const blockDiv = btn.closest('.block-card');
+      const id = blockDiv.dataset.id;
+      await saveDraft(btn);
+      const res = await fetch('/admin/content/block/' + id + '/publish', { method: 'POST' });
+      const data = await res.json();
+      const statusEl = blockDiv.querySelector('.status-text');
+      if (data.ok) {
+        statusEl.textContent = 'Published ✓ — live now';
+        const pill = blockDiv.querySelector('.pill');
+        pill.textContent = 'Published';
+        pill.classList.remove('pill-draft');
+        pill.classList.add('pill-published');
+      }
+    }
+  </script>
+</body>
+</html>
