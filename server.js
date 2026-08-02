@@ -38,6 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({ origin: ['http://localhost:3000', 'https://portfoiana.netlify.app'], credentials: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'change-this-secret',
@@ -57,6 +58,8 @@ app.use((req, res, next) => {
 
 app.use('/api', apiRouter);
 app.use('/admin', adminRouter);
+app.use('/api', require('./routes/api-content'));
+app.use('/admin', require('./routes/admin-content'));
 
 app.get('/', (req, res) => {
   res.send('Render backend is running.');
