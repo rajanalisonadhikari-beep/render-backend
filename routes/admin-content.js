@@ -4,18 +4,24 @@ const multer = require('multer');
 const path = require('path');
 const ContentBlock = require('../models/ContentBlock');
 
-// TODO: point this at whatever login-check middleware you already use
-// (you have bcrypt + express-session in package.json, so you likely have
-// something like requireLogin in /middleware already — reuse it here).
-const requireLogin = require('../middleware/auth');
+// Matches the requireAuth pattern already used in routes/admin.js
+// (checks req.session.user, redirects to /admin/login if not present)
+function requireLogin(req, res, next) {
+  if (req.session && req.session.user) return next();
+  res.redirect('/admin/login');
+}
 
 // ---- Image upload setup ----
 // Render's disk is wiped on every deploy, so local storage only works
 // until your next push. For anything permanent, swap this for Cloudinary
 // (free tier is plenty) — see the CLOUDINARY_SWAP note at the bottom of
 // this file for the 10-line change.
+// Reuses the SAME uploads folder your existing routes/admin.js already
+// writes to (path.join(__dirname, '../../uploads') from inside /routes,
+// which matches server.js's existing static route for '/uploads').
+// This keeps all your images in one place instead of splitting into two.
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'public', 'uploads')),
+  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, unique + path.extname(file.originalname));
