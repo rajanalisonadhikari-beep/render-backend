@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard — Admin</title>
+  <link rel="stylesheet" href="/admin.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <%- include('partials/sidebar', { active: 'dashboard' }) %>
+
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <h1>Dashboard</h1>
+      </div>
+
+      <div class="admin-content">
+        <div class="card-grid">
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <strong>Posts</strong>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="/admin/posts" style="margin-right:8px;">Manage posts</a>
+            <a class="btn btn-primary btn-sm" href="/admin/posts/new">Create new post</a>
+          </div>
+
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <strong>Messages</strong>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="/admin/messages">Review messages</a>
+          </div>
+
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <strong>Site Content</strong>
+            </div>
+            <a class="btn btn-primary btn-sm" href="/admin/content">Edit site content</a>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <strong>Recent posts</strong>
+          <p style="color:var(--text-faint); font-size:13px; margin:10px 0 0;">
+            <%# render your existing recent-posts list/table here, just wrap it in this .card %>
+          </p>
+        </div>
+
+        <div class="card">
+          <strong>Recent messages</strong>
+          <p style="color:var(--text-faint); font-size:13px; margin:10px 0 0;">
+            <%# render your existing recent-messages list/table here %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
