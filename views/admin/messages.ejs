@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; color: #111827; }
+      .shell { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+      .card { background: #fff; border-radius: 14px; padding: 1rem 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+      .actions a, .actions button { text-decoration: none; color: #2563eb; background: #eff6ff; border: none; padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer; margin-right: 0.5rem; }
+      .delete { color: #b91c1c; background: #fee2e2; }
+      .pill { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <h1>Messages</h1>
+      <p><a href="/admin">Dashboard</a></p>
+      <% messages.forEach((message) => { %>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <strong><%= message.name %></strong>
+            <span class="pill"><%= message.read ? 'Read' : 'Unread' %></span>
+          </div>
+          <p><%= message.email %></p>
+          <p><%= message.message %></p>
+          <div class="actions">
+            <% if (!message.read) { %>
+              <form method="POST" action="/admin/messages/<%= message._id %>/read" style="display:inline;">
+                <button type="submit">Mark read</button>
+              </form>
+            <% } %>
+            <form method="POST" action="/admin/messages/<%= message._id %>/delete" style="display:inline;">
+              <button class="delete" type="submit">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </body>
+</html>

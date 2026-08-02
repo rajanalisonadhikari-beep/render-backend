@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= item._id ? 'Edit Gallery Item' : 'New Gallery Item' %></title>
+  <link rel="stylesheet" href="/admin/css/style.css" />
+</head>
+<body class="admin-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">Admin Panel</div>
+      <button id="sidebarToggle" class="sidebar-toggle"><i class="fa fa-chevron-left"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-title">Content</div>
+        <a href="/admin" class="nav-item">Dashboard</a>
+        <a href="/admin/services" class="nav-item">Services</a>
+        <a href="/admin/gallery" class="nav-item active">Gallery</a>
+        <a href="/admin/messages" class="nav-item">Messages</a>
+        <a href="/admin/about" class="nav-item">About</a>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-panel">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="site-logo">Rajan Adhikari</div>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="page-header">
+        <h2><%= item._id ? 'Edit Gallery Item' : 'Add Gallery Image' %></h2>
+      </div>
+      <div class="content-card">
+        <form action="<%= action %>" method="POST" enctype="multipart/form-data">
+          <label>Title<input type="text" name="title" value="<%= item.title || '' %>" required /></label>
+          <label>Caption<textarea name="caption" rows="4"><%= item.caption || '' %></textarea></label>
+          <label>Image upload<input type="file" name="image" accept="image/*" /></label>
+          <% if (item.imageUrl) { %>
+            <img src="<%= item.imageUrl %>" alt="Current image" class="preview-image" />
+          <% } %>
+          <button type="submit" class="btn btn-primary">Save Gallery</button>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="/admin/js/script.js"></script>
+</body>
+</html>

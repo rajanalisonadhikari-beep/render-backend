@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= post ? 'Edit Post' : 'Create Post' %></title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; color: #111827; }
+      .shell { max-width: 800px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+      .card { background: #fff; border-radius: 14px; padding: 1rem 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+      label { display: block; margin-bottom: 0.8rem; font-weight: 600; }
+      input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 0.25rem; box-sizing: border-box; }
+      button { background: #2563eb; color: #fff; border: none; border-radius: 10px; padding: 0.75rem 1rem; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="card">
+        <h1><%= post ? 'Edit Post' : 'Create Post' %></h1>
+        <form method="POST" action="<%= action %>" enctype="multipart/form-data">
+          <label>Title<input type="text" name="title" value="<%= post?.title || '' %>" required /></label>
+          <label>Slug<input type="text" name="slug" value="<%= post?.slug || '' %>" /></label>
+          <label>Excerpt<textarea name="excerpt" rows="3"><%= post?.excerpt || '' %></textarea></label>
+          <label>Body<textarea name="body" rows="8" required><%= post?.body || '' %></textarea></label>
+          <label>Cover image<input type="file" name="coverImage" /></label>
+          <button type="submit">Save</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
