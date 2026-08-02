@@ -1,0 +1,21 @@
+<%
+  // Pass `active` from each view: 'dashboard' | 'content' | 'posts' | 'messages'
+  var active = typeof active !== 'undefined' ? active : '';
+%>
+<aside class="admin-sidebar">
+  <div class="brand"><span class="dot"></span> Spring Rain Admin</div>
+
+  <nav>
+    <div class="nav-label">Overview</div>
+    <a class="nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/admin">🏠 Dashboard</a>
+
+    <div class="nav-label">Site</div>
+    <a class="nav-link <%= active === 'content' ? 'active' : '' %>" href="/admin/content">✏️ Content</a>
+    <a class="nav-link <%= active === 'posts' ? 'active' : '' %>" href="/admin/posts">📝 Posts</a>
+    <a class="nav-link <%= active === 'messages' ? 'active' : '' %>" href="/admin/messages">✉️ Messages</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a class="nav-link" href="/admin/logout">↩ Logout</a>
+  </div>
+</aside>
