@@ -97,10 +97,15 @@ router.post('/content/block/:id/publish', requireLogin, async (req, res) => {
 
 // POST /admin/content/block/:id/image -> upload an image and set it as the draft value
 router.post('/content/block/:id/image', requireLogin, upload.single('image'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ ok: false, error: 'No file uploaded' });
-  const url = req.file.path; // Cloudinary's hosted URL
-  await ContentBlock.findByIdAndUpdate(req.params.id, { draftValue: url });
-  res.json({ ok: true, url });
+  try {
+    if (!req.file) return res.status(400).json({ ok: false, error: 'No file uploaded' });
+    const url = req.file.path; // Cloudinary's hosted URL
+    await ContentBlock.findByIdAndUpdate(req.params.id, { draftValue: url });
+    res.json({ ok: true, url });
+  } catch (err) {
+    console.error('Image upload failed:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // DELETE /admin/content/block/:id
@@ -127,6 +132,12 @@ router.get('/content/:pageSlug/preview-frame', requireLogin, async (req, res) =>
   } catch (err) {
     res.status(502).send('Could not load live page for preview: ' + err.message);
   }
+});
+
+// Catch-all for any other errors thrown in routes above (e.g. multer errors)
+router.use((err, req, res, next) => {
+  console.error('Route error:', err);
+  res.status(500).json({ ok: false, error: err.message });
 });
 
 module.exports = router;
