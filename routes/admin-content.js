@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const ContentBlock = require('../models/ContentBlock');
 
 // Matches the requireAuth pattern already used in routes/admin.js
@@ -12,21 +14,19 @@ function requireLogin(req, res, next) {
 }
 
 // ---- Image upload setup ----
-// Render's disk is wiped on every deploy, so local storage only works
-// until your next push. For anything permanent, swap this for Cloudinary
-// (free tier is plenty) — see the CLOUDINARY_SWAP note at the bottom of
-// this file for the 10-line change.
-// Reuses the SAME uploads folder your existing routes/admin.js already
-// writes to (path.join(__dirname, '../../uploads') from inside /routes,
-// which matches server.js's existing static route for '/uploads').
-// This keeps all your images in one place instead of splitting into two.
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '../../uploads')),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
+// Uses Cloudinary so uploaded images survive redeploys and Render's
+// free-tier disk wipes (local disk storage doesn't persist).
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: 'site-content' },
+});
+
 const upload = multer({
   storage,
   limits: { fileSize: 8 * 1024 * 1024 },
@@ -98,7 +98,7 @@ router.post('/content/block/:id/publish', requireLogin, async (req, res) => {
 // POST /admin/content/block/:id/image -> upload an image and set it as the draft value
 router.post('/content/block/:id/image', requireLogin, upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ ok: false, error: 'No file uploaded' });
-  const url = '/uploads/' + req.file.filename;
+  const url = req.file.path; // Cloudinary's hosted URL
   await ContentBlock.findByIdAndUpdate(req.params.id, { draftValue: url });
   res.json({ ok: true, url });
 });
@@ -130,19 +130,3 @@ router.get('/content/:pageSlug/preview-frame', requireLogin, async (req, res) =>
 });
 
 module.exports = router;
-
-/*
-CLOUDINARY_SWAP (recommended before going live, so images survive redeploys):
-
-npm install cloudinary multer-storage-cloudinary
-
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-const storage = new CloudinaryStorage({ cloudinary, params: { folder: 'site-content' } });
-// then use `upload = multer({ storage })` as above, and req.file.path is the URL instead of req.file.filename
-*/
